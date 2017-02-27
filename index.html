@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style type="text/css" id = "style-sheet">
+        .images{
+            width: 100%;
+        }
+        @keyframes image-animation {
+
+        }
+    </style>
+</head>
+<body id="body">
+<h1>动画测试工具(TEST)</h1>
+动画周期：<input type="number" id="duration">s
+帧数：<input type="number" id="frameNum">幀
+上传图片: <input id="file1" type="file">
+<div id="result"></div>
+</body>
+<script>
+    var input = document.getElementById("file1"),
+            result = document.getElementById("result"),
+            duration = document.getElementById("duration"),
+            frameNumber = document.getElementById("frameNum"),
+            sheet = document.getElementById("style-sheet"),
+            h = 1000,
+            w = 1000,
+            useBlob   = false && window.URL;
+    if(typeof FileReader === 'undefined'){
+        result.innerHTML = "抱歉，你的浏览器不支持 FileReader";
+        input.setAttribute('disabled','disabled');
+    }else{
+        input.addEventListener('change',readFile,false);
+    }
+    frameNumber.addEventListener('change', changeStyle, false);
+    duration.addEventListener('change', changeStyle, false);
+    function changeStyle() {
+        var styleName = "blink-blink ",
+                fn = frameNumber.value ? frameNumber.value: 2,
+                du = duration.value ? duration.value + "s": "2s";
+        sheet.innerHTML = "@keyframes " + styleName + "{0% {background-position: 0 0;}100% {background-position:"
+                + ("-" + w + 'px') + " 0;}}";
+        result.style.animationName = styleName;
+        result.style.animationDuration = du;
+        result.style.height = h + "px";
+        result.style.width  = w/ fn + "px";
+        result.style.backgroundSize = w + "px " + h + "px";
+        result.style.animationTimingFunction = "steps(" + fn + ",end)";
+        result.style.animationIterationCount = "infinite";
+    }
+    changeStyle();
+    function readFile(files) {
+        var file = files[0] ? files[0] : this.files[0];
+        console.log(file);
+        if(!/image\/\w+/.test(file.type)){
+            alert("文件必须为图片！");
+            return false;
+        }
+        var reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function(e){
+            var image  = new Image();
+
+            image.addEventListener("load", function () {
+                h = image.height;
+                w = image.width;
+                changeStyle();
+
+                if (useBlob) {
+                    window.URL.revokeObjectURL(image.src);
+                }
+            });
+            image.src = useBlob ? window.URL.createObjectURL(file) : reader.result;
+            result.style.backgroundImage = "url('" + this.result + "')";
+        }
+    }
+
+    var dropbox = document.getElementById("body");
+
+    dropbox.addEventListener("dragenter", dragenter, false);
+    dropbox.addEventListener("dragover", dragover, false);
+    dropbox.addEventListener("drop", drop, false);
+    function dragenter(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    function dragover(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    function drop(e) {
+        e.stopPropagation();
+        e.preventDefault();
+
+        readFile(e.dataTransfer.files);
+    }
+</script>
+</html>
